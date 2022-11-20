@@ -1,0 +1,153 @@
+{
+	"info": {
+		"_postman_id": "52348849-c393-4ab9-8942-f5f6cd05ff4b",
+		"name": "New Collection",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "24518034"
+	},
+	"item": [
+		{
+			"name": "DevOpsLabAPI_Post01",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\":\"do a dance\",\r\n  \"isComplete\":false\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://localhost:7138/todoitems",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "7138",
+					"path": [
+						"todoitems"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "DevOpsLabAPI_Get01",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://localhost:7138/todoitems",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "7138",
+					"path": [
+						"todoitems"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "DevOpsLabAPI_Delete01",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "https://localhost:7138/todoitems/1",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "7138",
+					"path": [
+						"todoitems",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "DevOpsLabAPI_Post02",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\":\"do a dance\",\r\n  \"isComplete\":false\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://localhost:7138/todoitems",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "7138",
+					"path": [
+						"todoitems"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "DevOpsLabAPI_Get02",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://localhost:7138/todoitems",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "7138",
+					"path": [
+						"todoitems"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "DevOpsLabAPI_Put01",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"id\": 2,\r\n  \"name\": \"do a different dance\",\r\n  \"isComplete\": false\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://localhost:7138/todoitems/2",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "7138",
+					"path": [
+						"todoitems",
+						"2"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
