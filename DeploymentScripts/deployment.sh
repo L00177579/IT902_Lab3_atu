@@ -1,0 +1,6 @@
+echo "Files deployment path: $3"
+echo "Deploying $1 to environment $2"
+echo "This is where our deploy command would run"
+echo "Various things such as connection to the cloud provider"
+echo "And the CLI command to deploy the application and the neccessary parameters"
+echo "Successfully deployed $1 to environment $2"

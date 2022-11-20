@@ -1,0 +1,88 @@
+name: DevOpsLabs.yml
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+    
+env:
+  ENV_TO_DEPLOY: Dev
+  API_ENDPOINT: "http://notarealendpoint.test:7521/"
+
+jobs:
+  #.NET can be built on ubuntu
+  DevOpsLabsBuild:
+    runs-on: ubuntu-latest
+    name: Install .NET Requirements, Build, Test and Package DevOpsLabs project
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install .NET Requirements
+        uses: actions/setup-dotnet@v3
+
+      - name: Restore nuget packages
+        run: dotnet restore
+        
+      - name: Build .NET Project
+        id: dotnetbuild
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Test .NET Project
+        run: dotnet test --verbosity normal --no-restore --logger trx --results-directory "./UnitTestResults/DevOpsLabsUnitTests"
+
+      - name: Upload results
+        uses: actions/upload-artifact@v3
+        with:
+          name: DevOpsLabsUnitTestResults
+          path: ./UnitTestResults/DevOpsLabsUnitTests
+        if: ${{ always() }}
+
+      - name: Upload build output for DevOpsLabs
+        uses: actions/upload-artifact@v3
+        with:
+          name: DevOpsLabsOutput
+          path: ${{ github.workspace }}/DevOpsLabs/bin/Release/net6.0/*.*
+        if: ${{ steps.dotnetbuild.outcome == 'success' }}
+
+      - name: Upload build output for DevOpsLabs API
+        uses: actions/upload-artifact@v3
+        with:
+          name: DevOpsLabsAPIOutput
+          path: ${{ github.workspace }}/DevOpsLabs.API/bin/Release/net6.0/*.*
+        if: ${{ steps.dotnetbuild.outcome == 'success' }}
+
+  DevOpsLabsDeployment:
+    needs: DevOpsLabsBuild
+    runs-on: ubuntu-latest
+    name: Deploy DevOpsLabs
+    steps:
+      - uses: actions/checkout@v3
+      - name: Download DevOpsLabs build output
+        uses: actions/download-artifact@v3
+        with:
+          name: DevOpsLabsOutput
+          path: ./DevOpsLabsOutput/
+      - name: Download DevOpsLabs API build output
+        uses: actions/download-artifact@v3
+        with:
+          name: DevOpsLabsAPIOutput
+          path: ./DevOpsLabsAPIOutput/
+      - name: Deploy DevOpsLabs project
+        run: |
+          chmod +x ./DeploymentScripts/deployment.sh
+          ./DeploymentScripts/deployment.sh DevOpsLabs $ENV_TO_DEPLOY ./DevOpsLabsOutput/
+      - name: Deploy DevOpsLabs API project
+        run: |
+          chmod +x ./DeploymentScripts/deployment.sh
+          ./DeploymentScripts/deployment.sh DevOpsLabs.API $ENV_TO_DEPLOY ./DevOpsLabsAPIOutput/
+
+  DevOpsLabsSystemTests:
+    needs: DevOpsLabsDeployment
+    runs-on: ubuntu-latest
+    name: Run Test Suite
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run newman System Tests against the API
+        run: |
+          chmod +x ./PostmanTestJSON/newman_testing.sh
+          ./PostmanTestJSON/newman_testing.sh $API_ENDPOINT
