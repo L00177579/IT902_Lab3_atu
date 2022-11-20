@@ -1,0 +1,103 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  ENV_TO_DEPLOY: Dev
+  API_ENDPOINT: "http://notarealendpoint.test:7521/"
+
+jobs:
+- job: DevOpsLabsBuild
+  displayName: Install .NET Requirements, Build, Test and Package DevOpsLabs project
+  steps:
+    - task: UseDotNet@2
+      displayName: Install .NET Requirements
+    - task: DotNetCoreCLI@2
+      displayName: Restore nuget packages
+      inputs:
+        command: 'restore'
+    - task: DotNetCoreCLI@2
+      displayName: Build .NET Project
+      inputs:
+        command: 'build'
+        arguments: '--configuration Release --no-restore'
+    - task: DotNetCoreCLI@2
+      displayName: Test .NET Project
+      inputs:
+        command: 'test' 
+        publishTestResults: false
+        arguments: '--no-restore --logger trx --results-directory ./UnitTestResults/DevOpsLabsUnitTests'  
+    - task: PublishBuildArtifacts@1
+      displayName: Upload results
+      inputs:
+        pathToPublish: ./UnitTestResults/DevOpsLabsUnitTests
+        artifactName: DevOpsLabsUnitTestResults
+      condition: always()
+    - task: PublishBuildArtifacts@1
+      displayName: Upload build output for DevOpsLabs
+      inputs:
+        pathToPublish: $(Pipeline.Workspace)/s/DevOpsLabs/bin/Release/net6.0/
+        artifactName: DevOpsLabsOutput
+      condition: always()
+    - task: PublishBuildArtifacts@1
+      displayName: Upload build output for DevOpsLabs API
+      inputs:
+        pathToPublish: $(Pipeline.Workspace)/s/DevOpsLabs.API/bin/Release/net6.0/
+        artifactName: DevOpsLabsAPIOutput
+      condition: always()
+
+- job: DevOpsLabsDeployment
+  displayName: Deploy DevOpsLabs
+  dependsOn: DevOpsLabsBuild
+  steps:
+    - task: DownloadPipelineArtifact@2
+      displayName: Download DevOpsLabs build output
+      inputs:
+        source: 'current'
+        artifact: DevOpsLabsOutput
+        path: ./DevOpsLabsOutput/
+    - task: DownloadPipelineArtifact@2
+      displayName: Download DevOpsLabs build output
+      inputs:
+        source: 'current'
+        artifact: DevOpsLabsAPIOutput
+        path: ./DevOpsLabsAPIOutput/
+    - task: DownloadPipelineArtifact@2
+      displayName: Download DevOpsLabs build output
+      inputs:
+        source: 'current'
+        artifact: DevOpsLabsOutput
+        path: ./DevOpsLabsOutput/
+    - task: Bash@3
+      displayName: Deploy DevOpsLabs project
+      inputs:
+        targetType: inline
+        script: |
+          chmod +x ./DeploymentScripts/deployment.sh
+          ./DeploymentScripts/deployment.sh DevOpsLabs $ENV_TO_DEPLOY ./DevOpsLabsOutput/
+    - task: Bash@3
+      displayName: Deploy DevOpsLabs API project
+      inputs:
+        targetType: inline
+        script: |
+          chmod +x ./DeploymentScripts/deployment.sh
+          ./DeploymentScripts/deployment.sh DevOpsLabs.API $ENV_TO_DEPLOY ./DevOpsLabsAPIOutput/
+
+- job: DevOpsLabsSystemTests
+  displayName: Run Test Suite
+  dependsOn: DevOpsLabsDeployment
+  steps:
+    - task: Bash@3
+      displayName: Run newman System Tests against the API
+      inputs:
+        targetType: inline
+        script: |
+          chmod +x ./PostmanTestJSON/newman_testing.sh
+          ./PostmanTestJSON/newman_testing.sh $API_ENDPOINT
